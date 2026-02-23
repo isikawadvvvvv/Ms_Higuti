@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>新塾駅から脱出するっぺよ！（仮）</title>
+    <link href="https://fonts.googleapis.com/css2?family=DotGothic16&display=swap" rel="stylesheet">
+    <style>
+        /* =========================================
+           基本レイアウト・レトロデザイン
+        ========================================= */
+        body {
+            margin: 0;
+            background-color: #222;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            font-family: 'DotGothic16', sans-serif;
+            user-select: none;
+        }
+
+        #game-container {
+            width: 800px;
+            height: 450px;
+            background-color: #000;
+            position: relative;
+            box-shadow: 0 0 20px rgba(0,0,0,0.8);
+            overflow: hidden;
+            border: 4px solid #fff;
+        }
+
+        /* 背景・キャラクター表示エリア */
+        #scene-view {
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(#555, #333); /* 仮の背景 */
+            position: absolute;
+            top: 0; left: 0;
+            display: flex;
+            justify-content: center;
+            align-items: flex-end;
+        }
+
+        /* プレースホルダーのキャラクター */
+        #character {
+            width: 150px;
+            height: 250px;
+            background-color: #ffccaa;
+            border: 4px solid #000;
+            margin-bottom: 120px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: #000;
+            font-weight: bold;
+        }
+
+        /* =========================================
+           UI: メッセージボックス
+        ========================================= */
+        #message-box {
+            position: absolute;
+            bottom: 60px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 90%;
+            height: 100px;
+            background-color: #fff;
+            border: 4px solid #0000cd;
+            box-sizing: border-box;
+            padding: 15px;
+            box-shadow: 4px 4px 0px #000;
+            z-index: 10;
+        }
+
+        #name-plate {
+            position: absolute;
+            top: -30px;
+            left: -4px;
+            background-color: #0000cd;
+            color: #fff;
+            padding: 4px 15px;
+            border: 4px solid #fff;
+            border-bottom: none;
+            font-size: 20px;
+        }
+
+        #message-text {
+            font-size: 20px;
+            color: #000;
+            line-height: 1.4;
+        }
+
+        /* =========================================
+           UI: コマンドボタン
+        ========================================= */
+        #command-menu {
+            position: absolute;
+            bottom: 10px;
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            z-index: 10;
+        }
+
+        .cmd-btn {
+            background-color: #ccc;
+            border: 4px solid #fff;
+            box-shadow: 2px 2px 0px #000;
+            padding: 5px 20px;
+            font-family: 'DotGothic16', sans-serif;
+            font-size: 22px;
+            cursor: pointer;
+            transition: 0.1s;
+        }
+
+        .cmd-btn:hover {
+            background-color: #fff;
+            transform: translateY(2px);
+            box-shadow: 0px 0px 0px #000;
+        }
+
+        /* サブ選択肢エリア（移動先など） */
+        #sub-menu {
+            position: absolute;
+            bottom: 180px;
+            left: 5%;
+            background-color: #fff;
+            border: 4px solid #000;
+            box-shadow: 4px 4px 0px #000;
+            display: none;
+            flex-direction: column;
+            z-index: 15;
+            padding: 5px;
+        }
+
+        .sub-cmd-btn {
+            background: none;
+            border: none;
+            text-align: left;
+            font-family: 'DotGothic16', sans-serif;
+            font-size: 22px;
+            padding: 5px 15px;
+            cursor: pointer;
+        }
+        .sub-cmd-btn:hover {
+            background-color: #0000cd;
+            color: #fff;
+        }
+
+        /* =========================================
+           UI: 死亡（バッドエンド）画面
+        ========================================= */
+        #death-screen {
+            position: absolute;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background-color: rgba(200, 0, 0, 0.9);
+            color: #fff;
+            display: none;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 100;
+            text-align: center;
+        }
+
+        #death-title {
+            font-size: 60px;
+            margin-bottom: 20px;
+            text-shadow: 4px 4px 0px #000;
+        }
+
+        #death-reason {
+            font-size: 30px;
+            margin-bottom: 40px;
+            background: #000;
+            padding: 10px 20px;
+            border: 2px solid #fff;
+        }
+
+        #retry-btn {
+            background-color: #000;
+            color: #fff;
+            border: 4px solid #fff;
+            padding: 10px 40px;
+            font-family: 'DotGothic16', sans-serif;
+            font-size: 30px;
+            cursor: pointer;
+        }
+        #retry-btn:hover {
+            background-color: #fff;
+            color: #000;
+        }
+
+    </style>
+</head>
+<body>
+
+<div id="game-container">
+    <div id="scene-view">
+        <div id="character">主人公</div>
+    </div>
+
+    <div id="message-box">
+        <div id="name-plate">主人公</div>
+        <div id="message-text">えっと…ここはどこだべ？<br>さっきから同じ場所さぐるぐるしてる気がするだ…</div>
+    </div>
+
+    <div id="sub-menu"></div>
+
+    <div id="command-menu">
+        <button class="cmd-btn" onclick="executeCommand('look')">見る</button>
+        <button class="cmd-btn" onclick="executeCommand('talk')">話す</button>
+        <button class="cmd-btn" onclick="executeCommand('move')">移動</button>
+        <button class="cmd-btn" onclick="executeCommand('item')">アイテム</button>
+    </div>
+
+    <div id="death-screen">
+        <div id="death-title">YOU DIED</div>
+        <div id="death-reason">死因：---</div>
+        <button id="retry-btn" onclick="retryGame()">コンティニュー</button>
+    </div>
+</div>
+
+<script>
+    // =========================================
+    // ゲームデータ（シーンとコマンドの定義）
+    // =========================================
+    const gameData = {
+        scene1: {
+            text: "えっと…ここはどこだべ？<br>さっきから同じ場所さぐるぐるしてる気がするだ…",
+            look: "人が多すぎて前が見えねえべ！案内板も見えねえ！",
+            talk: "「す、すいません…」<br>…誰も止まってくれないべ。",
+            item: "青森のばっちゃがくれた『干し芋』があるべ。<br>今は食べる時じゃねえな。",
+            move: [
+                { label: "地下へ向かう階段を降りる", action: "badEnd", reason: "階段を降りたと思ったら、そこは埼○県だった。<br>二度と東京には戻れず死亡。" },
+                { label: "人の波に乗って歩く", action: "goto", target: "scene2" }
+            ]
+        },
+        scene2: {
+            text: "なんとか開けた場所に出たべ！<br>あっちにリンゴのマークのピカピカした店があるな…",
+            look: "でっかい駅だべ…。田舎の駅とは大違いだべ。",
+            talk: "（客引きのお兄さんがこっちを見ている…やめとくべ）",
+            item: "所持金はあと5000円だべ。彼女にプレゼントを買わなきゃなんねえ。",
+            move: [
+                { label: "新宿御苑（地上）を目指す", action: "goto", target: "scene3" },
+                { label: "リンゴのマークの店に入る", action: "badEnd", reason: "ジョブズの亡霊に捕まりiPhone17を買わされた。<br>貯金が底をつき餓死。" }
+            ]
+        },
+        scene3: {
+            text: "やったべ！ついに外の光が見えるべ！<br>（デモ版はここまでです。クリアおめでとう！）",
+            look: "眩しい太陽だべ！",
+            talk: "「やったー！」",
+            item: "何もねえべ",
+            move: []
+        }
+    };
+
+    // =========================================
+    // システム制御
+    // =========================================
+    let currentScene = "scene1";
+    const msgText = document.getElementById("message-text");
+    const subMenu = document.getElementById("sub-menu");
+    const deathScreen = document.getElementById("death-screen");
+    const deathReason = document.getElementById("death-reason");
+
+    // シーンの読み込み
+    function loadScene(sceneId) {
+        currentScene = sceneId;
+        const scene = gameData[currentScene];
+        msgText.innerHTML = scene.text;
+        subMenu.style.display = "none";
+    }
+
+    // メインコマンドの実行
+    function executeCommand(type) {
+        const scene = gameData[currentScene];
+        subMenu.style.display = "none"; // 一旦サブメニューを閉じる
+
+        if (type === 'look') {
+            msgText.innerHTML = scene.look;
+        } else if (type === 'talk') {
+            msgText.innerHTML = scene.talk;
+        } else if (type === 'item') {
+            msgText.innerHTML = scene.item;
+        } else if (type === 'move') {
+            // 移動の場合はサブメニュー（選択肢）を表示
+            if (scene.move.length > 0) {
+                subMenu.innerHTML = "";
+                scene.move.forEach(choice => {
+                    const btn = document.createElement("button");
+                    btn.className = "sub-cmd-btn";
+                    btn.innerText = "▶ " + choice.label;
+                    btn.onclick = () => {
+                        if (choice.action === "badEnd") {
+                            triggerBadEnd(choice.reason);
+                        } else if (choice.action === "goto") {
+                            loadScene(choice.target);
+                        }
+                    };
+                    subMenu.appendChild(btn);
+                });
+                subMenu.style.display = "flex";
+            } else {
+                msgText.innerHTML = "今は移動するところがねえべ。";
+            }
+        }
+    }
+
+    // 即死トラップの発動
+    function triggerBadEnd(reasonText) {
+        // 画面を一瞬フラッシュさせる演出などがあると良いですね
+        deathReason.innerHTML = "死因：<br>" + reasonText;
+        deathScreen.style.display = "flex";
+    }
+
+    // 爆速リトライ（0.5秒もかからず、即座に直前のシーンから復帰）
+    function retryGame() {
+        deathScreen.style.display = "none";
+        loadScene(currentScene); // 死んだシーンの最初からやり直し
+    }
+
+    // ゲーム初期化
+    loadScene(currentScene);
+
+</script>
+</body>
+</html>

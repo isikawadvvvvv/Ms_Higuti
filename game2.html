@@ -1,0 +1,448 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>1 Day Lag - Prototype</title>
+    <style>
+        /* =========================================
+           基本レイアウト
+        ========================================= */
+        :root {
+            --bg-color: #111;
+            --text-color: #eee;
+            --phone-bg: #8ba7bc; /* 画像に近いスマホの背景色 */
+        }
+
+        body {
+            margin: 0;
+            padding: 20px;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            font-family: 'Helvetica Neue', Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        .game-container {
+            display: flex;
+            gap: 20px;
+            width: 1000px;
+            height: 600px;
+        }
+
+        /* =========================================
+           左側：部屋（記憶探索エリア）
+        ========================================= */
+        .room-area {
+            flex: 1;
+            position: relative;
+            background: #2a3b4c; /* 現在の暗い部屋のベース色 */
+            border: 2px solid #333;
+            border-radius: 8px;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .scene-container {
+            flex: 1;
+            position: relative;
+            background-image: linear-gradient(to bottom, #1a2530, #2a3b4c);
+        }
+
+        /* 過去の部屋（モノクロ） */
+        .scene-past {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background-color: #cccccc;
+            background-image: linear-gradient(to bottom, #999, #ddd);
+            filter: grayscale(100%);
+            opacity: 0; /* 初期状態は非表示 */
+            transition: opacity 0.3s ease;
+            z-index: 10;
+            pointer-events: none; /* クリックは現在レイヤーへ通す */
+        }
+        
+        .scene-past::after {
+            content: "5 Days ago";
+            position: absolute;
+            top: 20px; left: 20px;
+            color: #fff;
+            font-size: 24px;
+            font-weight: bold;
+            text-shadow: 1px 1px 3px rgba(0,0,0,0.8);
+        }
+
+        /* 死体オブジェクト（現在にのみ存在） */
+        .dead-body {
+            position: absolute;
+            bottom: 40px; left: 150px;
+            width: 300px; height: 100px;
+            background: rgba(100, 100, 100, 0.5);
+            border-radius: 50px 50px 10px 10px;
+            box-shadow: inset 0 0 20px rgba(0,0,0,0.8);
+        }
+
+        /* 証拠品（クリック可能） */
+        .evidence-item {
+            position: absolute;
+            cursor: pointer;
+            z-index: 5;
+            transition: transform 0.2s;
+            border: 2px dashed rgba(255, 255, 255, 0.5);
+            padding: 5px;
+            background: rgba(0, 0, 0, 0.3);
+            color: white;
+            font-size: 12px;
+            text-align: center;
+        }
+
+        .evidence-item:hover {
+            transform: scale(1.1);
+            border-color: #fff;
+        }
+
+        #item-receipt { top: 350px; left: 250px; }
+        #item-mug { top: 380px; left: 450px; }
+
+        /* UI領域（記憶ボタンとインベントリ） */
+        .room-ui {
+            height: 100px;
+            background: #111;
+            display: flex;
+            align-items: center;
+            padding: 0 20px;
+            gap: 20px;
+            border-top: 2px solid #333;
+        }
+
+        .memory-btn {
+            background: linear-gradient(135deg, #2c5364, #0f2027);
+            color: #fff;
+            border: 2px solid #4a8ca8;
+            border-radius: 8px;
+            width: 100px;
+            height: 80px;
+            font-size: 24px;
+            font-weight: bold;
+            cursor: pointer;
+            box-shadow: 0 0 15px rgba(74, 140, 168, 0.5);
+            user-select: none;
+        }
+
+        .memory-btn:active {
+            box-shadow: inset 0 0 10px rgba(0,0,0,0.8);
+            transform: translateY(2px);
+        }
+
+        .inventory {
+            flex: 1;
+            display: flex;
+            gap: 10px;
+            height: 80px;
+            border: 1px solid #333;
+            background: #1a1a1a;
+            padding: 10px;
+            box-sizing: border-box;
+        }
+
+        .inv-item {
+            width: 60px;
+            height: 60px;
+            background: #333;
+            border: 1px solid #555;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: grab;
+            font-size: 12px;
+            text-align: center;
+            color: white;
+        }
+        .inv-item:active { cursor: grabbing; }
+
+        /* =========================================
+           右側：スマホ（チャット・尋問エリア）
+        ========================================= */
+        .phone-area {
+            width: 320px;
+            background: #111;
+            border-radius: 30px;
+            border: 4px solid #444;
+            padding: 10px;
+            box-shadow: 0 0 20px rgba(0,0,0,0.5);
+            display: flex;
+            flex-direction: column;
+            position: relative;
+        }
+
+        /* 画面のヒビ割れ演出（画像参考） */
+        .phone-area::after {
+            content: "";
+            position: absolute;
+            top: 0; right: 0;
+            width: 100px; height: 100px;
+            background: linear-gradient(45deg, transparent 48%, rgba(255,255,255,0.2) 50%, transparent 52%);
+            pointer-events: none;
+            border-radius: 0 25px 0 0;
+        }
+
+        .phone-screen {
+            flex: 1;
+            background: var(--phone-bg);
+            border-radius: 20px;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .chat-header {
+            background: #1a252f;
+            color: white;
+            padding: 15px;
+            text-align: center;
+            font-weight: bold;
+            font-size: 14px;
+        }
+
+        .chat-messages {
+            flex: 1;
+            padding: 15px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .message-row {
+            display: flex;
+            gap: 10px;
+            align-items: flex-start;
+        }
+
+        .user-icon {
+            width: 35px;
+            height: 35px;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: white;
+            font-weight: bold;
+            font-size: 16px;
+        }
+        .icon-a { background: #e74c3c; }
+        .icon-b { background: #2ecc71; }
+        .icon-c { background: #3498db; }
+
+        .chat-bubble {
+            background: white;
+            color: #333;
+            padding: 10px 15px;
+            border-radius: 15px;
+            max-width: 200px;
+            font-size: 14px;
+            position: relative;
+            transition: all 0.2s;
+        }
+        
+        .chat-bubble::before {
+            content: "";
+            position: absolute;
+            top: 10px; left: -8px;
+            border-top: 8px solid transparent;
+            border-bottom: 8px solid transparent;
+            border-right: 8px solid white;
+        }
+
+        /* ドロップ受け入れ時のハイライト */
+        .chat-bubble.drag-over {
+            transform: scale(1.05);
+            background: #fff3cd;
+            box-shadow: 0 0 10px rgba(255, 193, 7, 0.8);
+        }
+
+        .chat-footer {
+            background: #fff;
+            padding: 10px;
+            display: flex;
+            align-items: center;
+            color: #888;
+        }
+        .chat-input-fake {
+            flex: 1;
+            background: #f1f1f1;
+            border-radius: 15px;
+            padding: 8px 15px;
+            margin: 0 10px;
+            font-size: 12px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="game-container">
+    
+    <div class="room-area">
+        <div class="scene-container">
+            <div class="scene-present">
+                <div class="dead-body"></div>
+                <div class="evidence-item" id="item-receipt" onclick="collectItem('receipt', 'レシート')">📝 レシート</div>
+                <div class="evidence-item" id="item-mug" onclick="collectItem('mug', 'マグカップ')">☕ マグカップ</div>
+            </div>
+            
+            <div class="scene-past" id="memory-layer">
+                </div>
+        </div>
+
+        <div class="room-ui">
+            <button class="memory-btn" id="memory-btn">記憶</button>
+            
+            <div class="inventory" id="inventory">
+                </div>
+        </div>
+    </div>
+
+    <div class="phone-area">
+        <div class="phone-screen">
+            <div class="chat-header">
+                ＜ サークル仲間 📞
+            </div>
+            <div class="chat-messages" id="chat-messages">
+                
+                <div class="message-row">
+                    <div class="user-icon icon-a">A</div>
+                    <div class="chat-bubble drop-zone" data-requires="receipt">
+                        俺は昨日、お前の部屋に行ってないよ。無事をサークルに言わないと。
+                    </div>
+                </div>
+
+                <div class="message-row">
+                    <div class="user-icon icon-b">B</div>
+                    <div class="chat-bubble drop-zone" data-requires="mug">
+                        一つ野代うできない（※ダミーメッセージ）
+                    </div>
+                </div>
+
+                <div class="message-row">
+                    <div class="user-icon icon-c">C</div>
+                    <div class="chat-bubble">
+                        間住ないない（※ダミーメッセージ）
+                    </div>
+                </div>
+
+            </div>
+            <div class="chat-footer">
+                ＋ 📷 <div class="chat-input-fake">メッセージを入力</div> ☺
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<script>
+    // =========================================
+    // 1. 記憶の重ね合わせ（Memory Toggle）
+    // =========================================
+    const memoryBtn = document.getElementById('memory-btn');
+    const memoryLayer = document.getElementById('memory-layer');
+
+    // ボタンを押している間だけ、過去のレイヤーの透明度を1にする 
+    memoryBtn.addEventListener('mousedown', () => { memoryLayer.style.opacity = '1'; });
+    memoryBtn.addEventListener('mouseup', () => { memoryLayer.style.opacity = '0'; });
+    memoryBtn.addEventListener('mouseleave', () => { memoryLayer.style.opacity = '0'; });
+
+    // スマホ対応
+    memoryBtn.addEventListener('touchstart', (e) => { e.preventDefault(); memoryLayer.style.opacity = '1'; });
+    memoryBtn.addEventListener('touchend', () => { memoryLayer.style.opacity = '0'; });
+
+
+    // =========================================
+    // 2. 証拠品の取得とインベントリ追加
+    // =========================================
+    function collectItem(itemId, itemName) {
+        // 部屋からアイテムを消す
+        const itemObj = document.getElementById('item-' + itemId);
+        if(itemObj) itemObj.style.display = 'none';
+
+        // インベントリに追加し、ドラッグ可能にする
+        const inventory = document.getElementById('inventory');
+        const invItem = document.createElement('div');
+        invItem.className = 'inv-item';
+        invItem.draggable = true; // HTML5 Drag & Drop API
+        invItem.innerText = itemName;
+        invItem.id = 'inv-' + itemId;
+        invItem.dataset.id = itemId;
+
+        // ドラッグ開始時の処理
+        invItem.addEventListener('dragstart', (e) => {
+            e.dataTransfer.setData('text/plain', itemId);
+            e.dataTransfer.effectAllowed = 'copyMove';
+        });
+
+        inventory.appendChild(invItem);
+    }
+
+
+    // =========================================
+    // 3. ドラッグ＆ドロップ尋問（Chat Interrogation）
+    // =========================================
+    const dropZones = document.querySelectorAll('.drop-zone');
+    const chatMessages = document.getElementById('chat-messages');
+
+    dropZones.forEach(zone => {
+        // ドラッグ要素が乗ったときのビジュアルフィードバック
+        zone.addEventListener('dragover', (e) => {
+            e.preventDefault(); // ドロップを許可するために必須
+            zone.classList.add('drag-over');
+        });
+
+        zone.addEventListener('dragleave', () => {
+            zone.classList.remove('drag-over');
+        });
+
+        // ドロップされたときの判定ロジック 
+        zone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            zone.classList.remove('drag-over');
+            
+            const droppedItemId = e.dataTransfer.getData('text/plain');
+            const requiredItemId = zone.dataset.requires;
+
+            if (droppedItemId === requiredItemId) {
+                // 正解の場合：相手の矛盾を突いた！ 
+                triggerNewTestimony(droppedItemId);
+                // 突きつけたアイテムをインベントリから消す（任意）
+                // document.getElementById('inv-' + droppedItemId).remove();
+            } else {
+                // 不正解の場合（軽く揺れるなどの演出を入れると良いです）
+                zone.style.transform = 'translateX(5px)';
+                setTimeout(() => zone.style.transform = 'none', 100);
+            }
+        });
+    });
+
+    // 矛盾を突いた後の新しいチャット展開 
+    function triggerNewTestimony(itemId) {
+        if (itemId === 'receipt') {
+            const newRow = document.createElement('div');
+            newRow.className = 'message-row';
+            newRow.innerHTML = `
+                <div class="user-icon icon-a">A</div>
+                <div class="chat-bubble" style="background:#ffcccc; color:#900;">
+                    あ、いや、それは…！昨日コンビニ行ったレシートが落ちてたのか…？
+                    でも俺は部屋の中には入ってない！
+                </div>
+            `;
+            chatMessages.appendChild(newRow);
+            chatMessages.scrollTop = chatMessages.scrollHeight; // 一番下へスクロール
+        }
+    }
+</script>
+
+</body>
+</html>

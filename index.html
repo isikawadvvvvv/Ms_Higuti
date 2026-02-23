@@ -3,420 +3,176 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Memorial_CMS // Admin Panel</title>
+    <title>Game Prototypes Hub</title>
     <style>
-        /* --- デザイン定義 --- */
         :root {
-            --sidebar-bg: #2c3e50;
-            --header-bg: #ffffff;
-            --main-bg: #f4f6f9;
-            --accent-blue: #3498db;
-            --accent-red: #e74c3c;
-            --text-color: #333;
-            --border: 1px solid #ddd;
+            --bg-color: #0f172a;
+            --text-color: #f8fafc;
+            --card-bg: #1e293b;
+            --accent-hover: #3b82f6;
         }
 
         body {
             margin: 0;
-            font-family: "Helvetica Neue", Arial, sans-serif;
-            background: var(--main-bg);
+            padding: 0;
+            background-color: var(--bg-color);
             color: var(--text-color);
-            display: flex;
-            height: 100vh;
-            overflow: hidden;
-        }
-
-        /* --- レイアウト --- */
-        .sidebar {
-            width: 240px;
-            background: var(--sidebar-bg);
-            color: #ecf0f1;
+            font-family: 'Helvetica Neue', Arial, sans-serif;
+            min-height: 100vh;
             display: flex;
             flex-direction: column;
-            padding-top: 20px;
-        }
-        .sidebar-item {
-            padding: 15px 20px;
-            cursor: pointer;
-            border-left: 4px solid transparent;
-            transition: 0.2s;
-        }
-        .sidebar-item:hover, .sidebar-item.active {
-            background: #34495e;
-            border-left-color: var(--accent-blue);
-        }
-        .sidebar-header {
-            padding: 0 20px 20px;
-            font-weight: bold;
-            font-size: 1.1rem;
-            border-bottom: 1px solid #4e6072;
-            margin-bottom: 10px;
-        }
-
-        .main-content {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
+            align-items: center;
+            justify-content: center;
         }
 
         header {
-            background: var(--header-bg);
-            padding: 15px 30px;
-            border-bottom: var(--border);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+            text-align: center;
+            margin-bottom: 50px;
         }
 
-        .workspace {
-            padding: 30px;
-            overflow-y: auto;
+        header h1 {
+            font-size: 2.5rem;
+            margin: 0;
+            letter-spacing: 2px;
+            background: linear-gradient(to right, #60a5fa, #a78bfa);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        header p {
+            color: #94a3b8;
+            font-size: 1.1rem;
+            margin-top: 10px;
+        }
+
+        /* ゲーム選択のグリッドレイアウト */
+        .game-grid {
+            display: flex;
+            gap: 30px;
+            max-width: 1200px;
+            padding: 0 20px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        /* 個別のゲームカード */
+        .game-card {
+            background-color: var(--card-bg);
+            width: 320px;
+            border-radius: 16px;
+            overflow: hidden;
+            text-decoration: none;
+            color: inherit;
+            transition: all 0.3s ease;
+            border: 2px solid transparent;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+            display: flex;
+            flex-direction: column;
+        }
+
+        .game-card:hover {
+            transform: translateY(-10px);
+            border-color: var(--accent-hover);
+            box-shadow: 0 15px 40px rgba(59, 130, 246, 0.3);
+        }
+
+        .card-image {
+            height: 180px;
+            background-color: #334155;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 3rem;
+        }
+
+        /* 各ゲームのイメージカラー */
+        .img-cms { background: linear-gradient(135deg, #2c3e50, #000000); }
+        .img-lag { background: linear-gradient(135deg, #2a3b4c, #8ba7bc); }
+        .img-shinjuku { background: linear-gradient(135deg, #0000cd, #555555); }
+
+        .card-content {
+            padding: 25px;
             flex: 1;
-            position: relative;
-        }
-
-        /* --- 画面コンポーネント --- */
-        .panel {
-            background: white;
-            border: var(--border);
-            border-radius: 4px;
-            padding: 20px;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.02);
-            margin-bottom: 20px;
-        }
-
-        /* 記事リスト */
-        .post-list-item {
             display: flex;
-            justify-content: space-between;
-            padding: 15px;
-            border-bottom: 1px solid #eee;
-            align-items: center;
-            cursor: pointer; /* クリック可能であることを示唆 */
-            transition: background 0.2s;
+            flex-direction: column;
         }
-        .post-list-item:hover { background: #f0f8ff; }
-        
-        .status-badge {
-            background: #eee; color: #555;
-            padding: 4px 8px; border-radius: 4px; font-size: 0.8rem;
-        }
-        .status-badge.published { background: #dff0d8; color: #3c763d; }
 
-        /* 記事閲覧ビュー (Read Mode) */
-        .blog-view {
-            max-width: 800px;
-            margin: 0 auto;
-            background: white;
-            padding: 40px;
-            border: 1px solid #ddd;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+        .card-title {
+            font-size: 1.4rem;
+            font-weight: bold;
+            margin: 0 0 10px 0;
         }
-        .blog-title { font-size: 2rem; font-weight: bold; margin-bottom: 10px; }
-        .blog-meta { color: #888; font-size: 0.9rem; margin-bottom: 30px; border-bottom: 1px solid #eee; padding-bottom: 10px;}
-        .blog-body { line-height: 1.8; font-size: 1.1rem; }
-        .blog-body img { max-width: 100%; border-radius: 4px; margin: 20px 0; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
 
-        /* 管理者用ツールバー (記事閲覧画面に出る) */
-        .admin-toolbar {
-            background: #ffeaa7;
-            border: 1px solid #fdcb6e;
-            padding: 15px;
+        .card-desc {
+            color: #cbd5e1;
+            font-size: 0.95rem;
+            line-height: 1.5;
             margin-bottom: 20px;
+            flex: 1;
+        }
+
+        .card-tags {
             display: flex;
-            justify-content: space-between;
-            align-items: center;
-            border-radius: 4px;
-        }
-        .admin-warning { font-size: 0.9rem; color: #d35400; font-weight: bold; }
-
-        /* 画像編集モーダル */
-        .image-overlay {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.8);
-            display: none;
-            justify-content: center; align-items: center;
-            z-index: 2000;
-        }
-        .image-editor {
-            background: #222;
-            padding: 10px;
-            border-radius: 4px;
-            display: flex; flex-direction: column; align-items: center;
+            gap: 10px;
         }
 
-        /* CAPTCHA */
-        .captcha-overlay {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.6);
-            display: none; justify-content: center; align-items: center;
-            z-index: 3000;
-            backdrop-filter: blur(5px);
+        .tag {
+            background: #334155;
+            color: #94a3b8;
+            padding: 5px 10px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: bold;
         }
-        .captcha-box {
-            background: white; padding: 20px; border-radius: 8px;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.5); max-width: 320px; width: 100%;
-        }
-        .captcha-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 5px; margin-bottom: 15px; }
-        .captcha-tile {
-            height: 80px; background: #eee; display: flex; justify-content: center; align-items: center;
-            font-size: 2rem; cursor: pointer; border: 2px solid transparent; position: relative;
-        }
-        .captcha-tile.selected { border-color: var(--accent-blue); background: #e3f2fd; }
-        .captcha-tile.selected::after {
-            content: "✓"; position: absolute; top: 2px; right: 2px;
-            background: var(--accent-blue); color: white; border-radius: 50%;
-            width: 20px; height: 20px; font-size: 12px; display: flex; justify-content: center; align-items: center;
-        }
-        
-        .btn { padding: 8px 16px; border: none; border-radius: 4px; cursor: pointer; font-size: 0.9rem; }
-        .btn-primary { background: var(--accent-blue); color: white; }
-        .btn-danger { background: var(--accent-red); color: white; }
-        .btn-outline { border: 1px solid #ccc; background: white; }
-        
-        .glitch-text { animation: shake 0.5s infinite; color: red; }
-        @keyframes shake { 0% { transform: translate(1px, 1px); } 50% { transform: translate(-1px, -1px); } 100% { transform: translate(1px, -1px); } }
 
     </style>
 </head>
 <body>
 
-    <div class="sidebar">
-        <div class="sidebar-header">Memorial_CMS</div>
-        <div class="sidebar-item active" onclick="showScreen('list')">📄 記事一覧</div>
-        <div class="sidebar-item">📁 メディア</div>
-        <div class="sidebar-item" style="margin-top:auto; background:#c0392b;">🚪 ログアウト</div>
+    <header>
+        <h1>PROTOTYPE LAUNCHER</h1>
+        <p>プレイするタイトルを選択してください</p>
+    </header>
+
+    <div class="game-grid">
+        
+        <a href="game1.html" class="game-card">
+            <div class="card-image img-cms">🖋️</div>
+            <div class="card-content">
+                <h2 class="card-title">Memorial_CMS</h2>
+                <p class="card-desc">故人のブログの画像を黒塗りしていくデジタル遺品整理ホラー。事務作業が、次第に呪いの儀式へとすり替わっていく。</p>
+                <div class="card-tags">
+                    <span class="tag">ホラー</span>
+                    <span class="tag">マウス操作</span>
+                </div>
+            </div>
+        </a>
+
+        <a href="game2.html" class="game-card">
+            <div class="card-image img-lag">📱</div>
+            <div class="card-content">
+                <h2 class="card-title">1 Day Lag（仮）</h2>
+                <p class="card-desc">過去の記憶と現在の部屋を重ね合わせ、証拠品を探し出す。集めた証拠をスマホのチャットに突きつけ、友人の嘘を暴け。</p>
+                <div class="card-tags">
+                    <span class="tag">推理・探索</span>
+                    <span class="tag">ドラッグ＆ドロップ</span>
+                </div>
+            </div>
+        </a>
+
+        <a href="game3.html" class="game-card">
+            <div class="card-image img-shinjuku">🚉</div>
+            <div class="card-content">
+                <h2 class="card-title">新塾駅から脱出するっぺよ！</h2>
+                <p class="card-desc">巨大な迷宮「新塾駅」から地上を目指すレトロ風ADV。理不尽な罠に引っかかると即死。爆速リトライで死に覚えろ！</p>
+                <div class="card-tags">
+                    <span class="tag">死にゲー</span>
+                    <span class="tag">コメディ</span>
+                </div>
+            </div>
+        </a>
+
     </div>
 
-    <div class="main-content">
-        <header>
-            <div>
-                <strong>Blog:</strong> Kousei's Diary (Archive)
-                <span style="font-size:0.8rem; color:#888; margin-left:10px;">ID: User_TK_1998</span>
-            </div>
-            <div id="task-status">Task: 肖像権処理 (0/1)</div>
-        </header>
-
-        <div class="workspace" id="workspace">
-            <div id="screen-list" class="panel">
-                <div style="display:flex; justify-content:space-between; margin-bottom:20px;">
-                    <h2>記事管理</h2>
-                    <input type="text" placeholder="キーワード検索..." value="ラグビー 優勝" style="padding:8px; width:250px;">
-                </div>
-                
-                <div class="post-list-item" onclick="openArticle()">
-                    <div>
-                        <strong style="font-size:1.1rem; color:var(--accent-blue);">俺たちの時代が来た！全国大会優勝報告</strong>
-                        <div style="font-size:0.8rem; color:#888;">1998/11/15 | カテゴリ: 部活</div>
-                    </div>
-                    <div>
-                        <span class="status-badge published">公開中</span>
-                        <span style="color:#aaa; font-size:1.5rem;">›</span>
-                    </div>
-                </div>
-
-                <div class="post-list-item" style="opacity:0.6; cursor:not-allowed;">
-                    <div>
-                        <strong>今日の朝練キツすぎ</strong>
-                        <div style="font-size:0.8rem; color:#888;">1998/10/02 | カテゴリ: 日常</div>
-                    </div>
-                    <div>
-                        <span class="status-badge">処理済</span>
-                    </div>
-                </div>
-            </div>
-
-            <div id="screen-read" style="display:none;">
-                <div class="blog-view">
-                    <div class="admin-toolbar">
-                        <span class="admin-warning">⚠ この記事にはプライバシー侵害の恐れがある画像が含まれています。</span>
-                        <button class="btn btn-danger" onclick="initiateEdit()">肖像権処理を実行 (編集)</button>
-                    </div>
-
-                    <button class="btn btn-outline" style="margin-bottom:20px;" onclick="showScreen('list')">← 一覧に戻る</button>
-
-                    <div class="blog-title">俺たちの時代が来た！全国大会優勝報告</div>
-                    <div class="blog-meta">投稿日: 1998年11月15日 22:45 | Author: Kousei</div>
-                    
-                    <div class="blog-body" id="article-body">
-                        <p>ついにやったぜ！横浜第一高校ラグビー部、悲願の初優勝！！</p>
-                        <p>みんな最高だ。俺がキャプテンで本当に良かった。</p>
-                        <p>このメンバーで世界でも絶対勝つ。</p>
-                        
-                        <img id="blog-image-display" src="" alt="集合写真">
-                        
-                        <p>応援してくれたみんな、ありがとう！</p>
-                        <p>（コメント：5件）</p>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <div id="captcha-modal" class="captcha-overlay">
-        <div class="captcha-box">
-            <div class="captcha-header" style="background:var(--accent-blue); color:white; padding:15px; margin:-20px -20px 15px -20px; border-radius:8px 8px 0 0;">
-                <strong>Security Check</strong><br>
-                <small>私はロボットではありません</small>
-            </div>
-            <div style="font-size:0.9rem; margin-bottom:10px;">
-                編集権限を確認します。<br>
-                以下の画像から <strong style="color:var(--accent-blue); text-decoration:underline;">信号機</strong> をすべて選択してください：
-            </div>
-            <div class="captcha-grid" id="captcha-grid">
-                </div>
-            <div style="display:flex; justify-content:flex-end; gap:10px;">
-                <button class="btn btn-outline" onclick="closeCaptcha()">キャンセル</button>
-                <button class="btn btn-primary" onclick="verifyCaptcha()">確認</button>
-            </div>
-        </div>
-    </div>
-
-    <div id="image-modal" class="image-overlay">
-        <div class="image-editor">
-            <div style="color:white; margin-bottom:10px; width:100%; display:flex; justify-content:space-between;">
-                <span>TOOL: Blackout_Marker</span>
-                <span style="font-size:0.8rem; color:#aaa;">指示: 通行人を黒塗りしてください</span>
-            </div>
-            <canvas id="photo-canvas" width="600" height="400" style="background:white; cursor:crosshair;"></canvas>
-            <div style="margin-top:10px; display:flex; gap:10px;">
-                <button class="btn btn-outline" onclick="closeImageEditor()">キャンセル</button>
-                <button class="btn btn-primary" onclick="saveImageEdit()">保存して反映</button>
-            </div>
-        </div>
-    </div>
-
-<script>
-    // --- 初期設定: ダミー画像生成 ---
-    function createDummyImage() {
-        const c = document.createElement('canvas');
-        c.width = 600; c.height = 400;
-        const x = c.getContext('2d');
-        x.fillStyle = "#87CEEB"; x.fillRect(0,0,600,200);
-        x.fillStyle = "#4CAF50"; x.fillRect(0,200,600,200);
-        x.fillStyle = "blue"; x.fillRect(250, 180, 100, 150);
-        x.beginPath(); x.arc(300, 150, 40, 0, Math.PI*2); x.fillStyle="#FFCCBC"; x.fill();
-        x.fillStyle = "black"; x.font = "20px Arial"; x.fillText("俺(高橋)", 260, 130);
-        // 黒塗り対象 (通行人)
-        x.fillStyle = "gray"; x.fillRect(50, 120, 40, 80);
-        x.beginPath(); x.arc(70, 110, 15, 0, Math.PI*2); x.fillStyle="#FFCCBC"; x.fill();
-        x.fillStyle = "gray"; x.fillRect(500, 130, 40, 80);
-        x.beginPath(); x.arc(520, 120, 15, 0, Math.PI*2); x.fillStyle="#FFCCBC"; x.fill();
-        return c.toDataURL();
-    }
-    const originalImageSrc = createDummyImage();
-    document.getElementById('blog-image-display').src = originalImageSrc;
-
-    // --- 画面遷移 ---
-    function showScreen(id) {
-        document.getElementById('screen-list').style.display = 'none';
-        document.getElementById('screen-read').style.display = 'none';
-        document.getElementById('screen-' + id).style.display = 'block';
-    }
-
-    // 記事を開く
-    function openArticle() {
-        showScreen('read');
-    }
-
-    // --- STEP 1: 編集ボタン -> CAPTCHA ---
-    function initiateEdit() {
-        document.getElementById('captcha-modal').style.display = 'flex';
-        generateCaptchaTiles();
-    }
-    function closeCaptcha() { document.getElementById('captcha-modal').style.display = 'none'; }
-
-    // --- STEP 2: CAPTCHA Logic ---
-    function generateCaptchaTiles() {
-        const grid = document.getElementById('captcha-grid');
-        grid.innerHTML = '';
-        const tilesData = [
-            { id:0, type:'ok', label:'🚦' }, { id:1, type:'ng', label:'🚲' }, { id:2, type:'ok', label:'🚦' },
-            { id:3, type:'ng', label:'🚌' }, { id:4, type:'ng', label:'🚶' }, { id:5, type:'ok', label:'🚦' },
-            { id:6, type:'ng', label:'🏬' }, { id:7, type:'ng', label:'🌲' }, { id:8, type:'ok', label:'🚦' }
-        ];
-        tilesData.forEach(tile => {
-            const div = document.createElement('div');
-            div.className = 'captcha-tile';
-            div.innerHTML = tile.label; 
-            div.dataset.type = tile.type;
-            div.onclick = () => { div.classList.toggle('selected'); };
-            grid.appendChild(div);
-        });
-    }
-
-    function verifyCaptcha() {
-        const selected = document.querySelectorAll('.captcha-tile.selected');
-        let correct = 0; let wrong = 0;
-        selected.forEach(el => { if(el.dataset.type === 'ok') correct++; else wrong++; });
-
-        if (correct >= 3 && wrong === 0) {
-            closeCaptcha();
-            openImageEditor(); // 直接エディタを開く
-        } else {
-            alert("認証失敗: 正しく選択してください。");
-            generateCaptchaTiles();
-        }
-    }
-
-    // --- STEP 3: 黒塗り (Blackout) ---
-    const canvas = document.getElementById('photo-canvas');
-    const ctx = canvas.getContext('2d');
-    let isDrawing = false;
-
-    function openImageEditor() {
-        document.getElementById('image-modal').style.display = 'flex';
-        const img = new Image();
-        img.src = document.getElementById('blog-image-display').src;
-        img.onload = () => { ctx.drawImage(img, 0, 0); };
-    }
-    function closeImageEditor() { document.getElementById('image-modal').style.display = 'none'; }
-
-    canvas.addEventListener('mousedown', (e) => { isDrawing = true; draw(e); });
-    canvas.addEventListener('mousemove', draw);
-    canvas.addEventListener('mouseup', () => { isDrawing = false; });
-
-    function draw(e) {
-        if(!isDrawing) return;
-        const rect = canvas.getBoundingClientRect();
-        const x = e.clientX - rect.left;
-        const y = e.clientY - rect.top;
-        ctx.lineWidth = 25; ctx.lineCap = 'round'; ctx.strokeStyle = '#000'; 
-        ctx.lineTo(x, y); ctx.stroke(); ctx.beginPath(); ctx.moveTo(x, y);
-    }
-
-    function saveImageEdit() {
-        // 画像を上書き
-        const dataUrl = canvas.toDataURL();
-        document.getElementById('blog-image-display').src = dataUrl;
-        closeImageEditor();
-        publishChanges(); // 自動的に更新処理へ
-    }
-
-    // --- 完了演出 ---
-    function publishChanges() {
-        alert("【システムメッセージ】\n画像を加工して記事を更新しました。");
-        
-        // 呪いの改変
-        const body = document.getElementById('article-body');
-        // 画像要素を保存しておく
-        const currentImg = document.getElementById('blog-image-display').outerHTML;
-        
-        body.innerHTML = `
-            <p>俺たちの時代なんて来なかった。</p>
-            <p>みんな嘘つきだ。俺だけが馬鹿みたいだ。</p>
-            <p>消してくれてありがとう。</p>
-            <br>
-            ${currentImg}
-        `;
-        
-        // 管理バーを消す（再編集不可にする）
-        document.querySelector('.admin-toolbar').style.display = 'none';
-        
-        document.getElementById('task-status').innerText = "Task: 完了 (Next Phase Ready)";
-        document.getElementById('task-status').style.color = "green";
-    }
-</script>
 </body>
 </html>
